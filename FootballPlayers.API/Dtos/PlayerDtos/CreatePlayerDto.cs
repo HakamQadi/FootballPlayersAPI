@@ -5,7 +5,7 @@ namespace FootballPlayers.API.Dtos.PlayerDtos;
 
 public record class CreatePlayerDto(
     [Required] string Name,
-    string Age,
+    int Age,
 
     [Required] int TeamId,
     [Required] int PositionId
