@@ -21,5 +21,13 @@ public class FootballContext(DbContextOptions<FootballContext> options) : DbCont
             new { Id = 3, Name = "Atlético de Madrid" }
 
         );
+        modelBuilder.Entity<Position>().HasData(
+            new { Id = 1, Name = "CF" }
+
+        );
+        modelBuilder.Entity<Player>().HasData(
+            new { Id = 1, Name = "Messi", Age = 36, PositionId = 1, TeamId = 1 }
+
+        );
     }
 }

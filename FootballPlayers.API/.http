@@ -1,0 +1,28 @@
+GET http://localhost:5205/api/players
+
+###
+POST http://localhost:5205/api/players
+Content-Type: application/json
+
+{
+  "name": "Messi",
+  "age": 37,
+  "teamId": 5,
+  "positionId": 2
+}
+
+###
+POST http://localhost:5205/api/teams
+Content-Type: application/json
+
+{
+    "name": "FC Barcelona"
+}
+
+###
+POST http://localhost:5205/api/positions
+Content-Type: application/json
+
+{
+    "name": "Attacker"
+}
