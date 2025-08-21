@@ -64,7 +64,7 @@ public static class PlayersEndpoints
             // return Results.CreatedAtRoute("GetPlayers", new { id = player.Id }, player.ToDto());
         });
 
-        group.MapPatch("/update", async (int id, UpdatePlayerDto updatedPlayer, FootballContext db) =>
+        group.MapPatch("/update/{id}", async (int id, UpdatePlayerDto updatedPlayer, FootballContext db) =>
         {
             Player? player = await db.Players.FindAsync(id);
             if (player is null)
