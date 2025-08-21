@@ -103,7 +103,6 @@ public static class PlayersEndpoints
                     ? Results.NoContent()
                     : Results.NotFound("Player not found");
         });
-//  ss
         return group;
     }
 }
