@@ -2,44 +2,83 @@ using FootballPlayers.API.Data;
 using FootballPlayers.API.Dtos.PositionDto;
 using FootballPlayers.API.Dtos.TeamDtos;
 using FootballPlayers.API.Entities;
+using FootballPlayers.API.Mapping;
 using Microsoft.EntityFrameworkCore;
 
 namespace FootballPlayers.API.Endpoints;
 
 public static class PositionsEndpoints
 {
-    public static void MapPositionsEndpoints(this IEndpointRouteBuilder routes)
+    public static RouteGroupBuilder MapPositionsEndpoints(this WebApplication app)
     {
-        var group = routes.MapGroup("api/positions");
+        var group = app.MapGroup("api/positions").WithParameterValidation();
 
-        // Get all positions
         group.MapGet("/", async (FootballContext db) =>
             await db.Positions
+                .Select(p => p.ToDto())
                 .AsNoTracking()
-                .Select(p => new PositionDto(p.Id, p.Name))
                 .ToListAsync()
         );
 
-        // Get position by id
         group.MapGet("/{id:int}", async (FootballContext db, int id) =>
         {
-            var position = await db.Positions
-                .AsNoTracking()
-                .Where(p => p.Id == id)
-                .Select(p => new PositionDto(p.Id, p.Name))
-                .FirstOrDefaultAsync();
+            Position? position = await db.Positions.FindAsync(id);
+            if (position is null)
+            {
+                return Results.NotFound();
+            }
 
-            return position is not null ? Results.Ok(position) : Results.NotFound();
+            return Results.Ok(position.ToPositionDetailsDto());
         });
 
-        // Create new position
-        group.MapPost("/", async (FootballContext db, CreatePositionDto dto) =>
+        group.MapPost("/create", async (FootballContext db, CreatePositionDto newPosition) =>
         {
-            var position = new Position { Name = dto.Name };
+            Position? position = await db.Positions.FirstOrDefaultAsync(position => position.Name == newPosition.Name);
+            if (position is not null)
+            {
+                return Results.Conflict("The Position with this name is already exist");
+            }
+
+            position = newPosition.ToEntity();
             db.Positions.Add(position);
             await db.SaveChangesAsync();
 
-            return Results.Created($"/positions/{position.Id}", new PositionDto(position.Id, position.Name));
+            return Results.Created();
         });
+
+        group.MapPatch("/update/{id}", async (int id, UpdatepositionDto updatedPosition, FootballContext db) =>
+        {
+            Position? position = await db.Positions.FirstOrDefaultAsync(position => position.Name == updatedPosition.Name);
+            if (position is not null)
+            {
+                return Results.Conflict("Position with same name is already exist");
+            }
+
+            position = await db.Positions.FindAsync(id);
+            if (position is null)
+            {
+                return Results.NotFound();
+            }
+
+
+            position.Name = updatedPosition.Name;
+
+            await db.SaveChangesAsync();
+
+            return Results.Ok(position.ToDto());
+        });
+
+        group.MapDelete("/delete/{id}", async (int id, FootballContext db) =>
+        {
+            Position? position = await db.Positions.FindAsync(id);
+            if (position is null)
+            {
+                return Results.NotFound();
+            }
+
+            await db.Positions.Where(position => position.Id == id).ExecuteDeleteAsync();
+            return Results.NoContent();
+        });
+        return group;
     }
 }
